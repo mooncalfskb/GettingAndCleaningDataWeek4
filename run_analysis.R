@@ -1,6 +1,8 @@
 library(dplyr)
-#library(plyr)
+library(plyr)
 
+# length of test = 2947
+# length of train = 7352
 
 
 #explanation of dataset
@@ -24,7 +26,7 @@ train_dir <- "/Users/mooncalf/Dropbox/skb/coursera/UCI_HAR_Dataset/train/"
 ##################################
 # Begin Activities and Features
 ##################################
-# function to read in similar two column text files
+# function to read in similar two column text files, activities and features
 readTwoColText <- function(fileName){
   rawData <- readLines(paste0(uci_dir, fileName))
   rawData <- simplify2array(strsplit(rawData, split=" "))
@@ -38,6 +40,7 @@ activities <- readTwoColText("activity_labels.txt")
 head(activities)
 features <- readTwoColText("features.txt")
 head(features)
+# set featuresLength variable to be used in data matrix later
 featuresLength <- length(features$description)
 
 
@@ -50,16 +53,14 @@ featuresLength <- length(features$description)
 # Begin Subjects and Activity Numbers
 ##################################
 # function to read in basics and number them with ids.
+# decided to always do "test" first and "train" second, and number them.
+# start_id is 1 for test and testLength + 1 for train
 readOneColText <- function(fileName, dir, start_id){
   rawData <- readLines(paste0(dir, fileName))
   end_id <- start_id + as.numeric(length(rawData)) - 1
   df <- data_frame(id=start_id:end_id,data=as.character(rawData))
   return(df)  
 }
-
-#tried something fancier but it didn't work.
-# testFiles <- c("subject_test.txt", "X_test.txt", "y_test.txt")
-# testVars <- c("testSubjects", "testX", "testY")
 
 testSubjects <- readOneColText("subject_test.txt", test_dir, 1)
 str(testSubjects)
@@ -68,17 +69,52 @@ str(testY)
 testLength <- length(testSubjects$data)
 
 # start id's of next group at 1 + length of last group
-new_start_id <- as.numeric(length(testSubjects$data)) + 1
+new_start_id <- testLength + 1
 trainSubjects <- readOneColText("subject_train.txt", train_dir, new_start_id)
 str(trainSubjects)
 
 trainY <- readOneColText("y_train.txt", train_dir, new_start_id)
 str(trainY)
 trainLength <- length(trainSubjects$data)
-
+#this variable used later
 totalLength <- testLength + trainLength
-##
-dataMatrix <- matrix(nrow=totalLength, ncol=featuresLength)
+
+
+#########################
+# combine subjects and activities
+#########################
+
+#remember strings as factors = false!
+subject_df <- data.frame(id=integer(),subject=integer(),activityID=integer(),activityName=character(), stringsAsFactors = FALSE)
+
+# loop through test data and activities and assign to dataframe along with an id
+for (i in 1:testLength){
+  subject_df[i, "id"] <- testSubjects$id[i] 
+  subject_df[i, "subject"] <- testSubjects$data[i] 
+  subject_df[i, "activityID"] <- testY$data[i]
+  #get this activity id from testY
+  thisActivityID <- testY$data[i]
+  thisActivity <- dplyr::filter(activities,id==thisActivityID)
+  subject_df[i, "activityName"] <- thisActivity$description
+}
+
+# loop through train data and activities and assign to dataframe along with an id
+start_id <- testLength + 1
+for (i in 1:trainLength){
+  
+  subject_df[start_id, "id"] <- trainSubjects$id[i] 
+  subject_df[start_id, "subject"] <- trainSubjects$data[i] 
+  subject_df[start_id, "activityID"] <- trainY$data[i]
+  #get this activity id from trainY
+  thisActivityID <- trainY$data[i]
+  #print(paste("this activity id for ",i,"=",thisActivityID))
+  thisActivity <- dplyr::filter(activities,id==thisActivityID)
+  #print(head(thisActivity))
+  subject_df[start_id, "activityName"] <- thisActivity$description
+  #increment up the start id
+  start_id <- start_id + 1
+}
+
 
 
 ##################################
@@ -111,9 +147,10 @@ splitLine <- function(data_str){
 #Begin Test Data
 #########################################
 
-
+dataMatrix <- matrix(nrow=totalLength, ncol=featuresLength)
 fileName <- "X_test"
 rd <- readDataFile(fileName,test_dir)
+j <- 1
   
 #for(j in 1:testLength) {
 for(j in 1:2) {
@@ -132,31 +169,39 @@ fileName <- "X_train"
 rd <- readDataFile(fileName,train_dir)
 #for(m in 1:lrd {
 
+m <- 1
 #for(j in 1:trainLength) {
-  
 for(m in 1:2) {
   
   rdd <- splitLine(rd[m])
   lrdd <- length(rdd)
   print(head(rdd)) 
 
+  #which row to start on
   start_id <- m+testLength
-  end_id <- testLength + trainLength - 1
+  #end_id <- testLength + trainLength - 1
   
-  for(n in start_id:end_id) {
-    dataMatrix[eval(m),eval(n)] <- rdd[n] 
+  for(n in 1:lrdd) {
+    dataMatrix[start_id,eval(n)] <- rdd[n] 
+    start_id <- start_id + 1
   }  
   
 }
 
-test_df <- as.data.frame(dataMatrix)
-colnames(test_df)
-for (i in 1:ncol(test_df)){
+data_df <- as.data.frame(dataMatrix)
+colnames(data_df)
+for (i in 1:ncol(data_df)){
   oldColName <- paste0("V",i)
   featureColName <- features$description[i]
   #this worked but dyplr rename did not. very irritating
-  names(test_df)[names(test_df) == oldColName] <- featureColName
+  names(data_df)[names(data_df) == oldColName] <- featureColName
 }
+
+## add an ID
+data_df <- mutate(data_df, id = 1:nrow(data_df))
+
+## join data
+total_df <- dplyr::arrange(plyr::join(subject_df, data_df), id)
 
 #########################################
 #End Test Data
@@ -287,4 +332,4 @@ for(i in 1:length(train_data_files)) {
 
 
 #use this to clear the global environment when R slows down
-rm(list = ls())
+#rm(list = ls())
