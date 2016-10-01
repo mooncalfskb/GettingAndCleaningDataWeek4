@@ -67,22 +67,23 @@ str(trainY)
 
 testdf <- data_frame()
 
-parseData <- function(fileName, dir, testdf){
+parseData <- function(fileName, dir){
   rawData <- readLines(paste0(dir, fileName, ".txt"))
   rawData <- simplify2array(strsplit(rawData, split="  "))
-  print(head(rawData))
-  testdf[,fileName] <- rawData
+  print(str(rawData))
+  testdf[,fileName] <- as.double(rawData)
 }
 
 test_data_dir <- "/Users/mooncalf/Dropbox/skb/coursera/UCI_HAR_Dataset/test/Inertial\ Signals/"
 train_data_dir <- "/Users/mooncalf/Dropbox/skb/coursera/UCI_HAR_Dataset/train/Inertial\ Signals/"
 
-test_data_files <- list.files(test_data_dir)
-test_data_files <- simplify2array(strsplit(test_data_files, split=".txt"))
+# test_data_files <- list.files(test_data_dir)
+# test_data_files <- simplify2array(strsplit(test_data_files, split=".txt"))
+test_data_files <- c("body_acc_x_test")
 
-
-sapply(test_data_files, FUN=parseData, dir=test_data_dir)
-
+df <- sapply(test_data_files, FUN=parseData, dir=test_data_dir)
+df <- as.data.frame(df)
+str(df)
 
 #use this to clear the global environment when R slows down
 #rm(list = ls())
