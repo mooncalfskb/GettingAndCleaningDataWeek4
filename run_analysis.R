@@ -1,5 +1,5 @@
 library(dplyr)
-library(plyr)
+#library(plyr)
 
 
 
@@ -21,12 +21,14 @@ uci_dir <- "/Users/mooncalf/Dropbox/skb/coursera/UCI_HAR_Dataset/"
 test_dir <- "/Users/mooncalf/Dropbox/skb/coursera/UCI_HAR_Dataset/test/"
 train_dir <- "/Users/mooncalf/Dropbox/skb/coursera/UCI_HAR_Dataset/train/"
 
-
+##################################
+# Begin Activities and Features
+##################################
 # function to read in similar two column text files
 readTwoColText <- function(fileName){
   rawData <- readLines(paste0(uci_dir, fileName))
   rawData <- simplify2array(strsplit(rawData, split=" "))
-  df <- data_frame(id=as.numeric(rawData[1,]),description<-rawData[2,])
+  df <- data_frame(id=as.numeric(rawData[1,]),description=rawData[2,])
   return(df)
 }
 
@@ -36,7 +38,17 @@ activities <- readTwoColText("activity_labels.txt")
 head(activities)
 features <- readTwoColText("features.txt")
 head(features)
+featuresLength <- length(features$description)
 
+
+##################################
+# End Activities and Features
+##################################
+
+
+##################################
+# Begin Subjects and Activity Numbers
+##################################
 # function to read in basics and number them with ids.
 readOneColText <- function(fileName, dir, start_id){
   rawData <- readLines(paste0(dir, fileName))
@@ -51,19 +63,31 @@ readOneColText <- function(fileName, dir, start_id){
 
 testSubjects <- readOneColText("subject_test.txt", test_dir, 1)
 str(testSubjects)
-testX <- readOneColText("X_test.txt", test_dir, 1)
-str(testX)
 testY <- readOneColText("y_test.txt", test_dir, 1)
 str(testY)
+testLength <- length(testSubjects$data)
 
 # start id's of next group at 1 + length of last group
 new_start_id <- as.numeric(length(testSubjects$data)) + 1
 trainSubjects <- readOneColText("subject_train.txt", train_dir, new_start_id)
 str(trainSubjects)
-trainX <- readOneColText("X_train.txt", train_dir, new_start_id)
-str(trainX)
+
 trainY <- readOneColText("y_train.txt", train_dir, new_start_id)
 str(trainY)
+trainLength <- length(trainSubjects$data)
+
+totalLength <- testLength + trainLength
+##
+dataMatrix <- matrix(nrow=totalLength, ncol=featuresLength)
+
+
+##################################
+# End Subjects and Activity Numbers
+##################################
+
+##################################
+# Begin parsing functions for data
+##################################
 
 # functions for reading and parsing data
 readDataFile <- function(fileName, dir){
@@ -71,18 +95,84 @@ readDataFile <- function(fileName, dir){
   return(rawData)
 }
 
-trimDataTo128 <- function(data_str){
+splitLine <- function(data_str){
   data_str <- gsub("  ", " ", data_str)
   data_str <- trimws(data_str)
   data_str <- as.double(simplify2array(strsplit(data_str, split=" ")))
   return(data_str)
 }
 
+##################################
+# End parsing functions for data
+##################################
+
+
+#########################################
+#Begin Test Data
+#########################################
+
+
+fileName <- "X_test"
+rd <- readDataFile(fileName,test_dir)
+  
+#for(j in 1:testLength) {
+for(j in 1:2) {
+    
+  rdd <- splitLine(rd[j])
+  lrdd <- length(rdd)
+  print(head(rdd)) 
+  
+  for(k in 1:lrdd) {
+    dataMatrix[eval(j),eval(k)] <- rdd[k] 
+  }  
+  
+}
+
+fileName <- "X_train"
+rd <- readDataFile(fileName,train_dir)
+#for(m in 1:lrd {
+
+#for(j in 1:trainLength) {
+  
+for(m in 1:2) {
+  
+  rdd <- splitLine(rd[m])
+  lrdd <- length(rdd)
+  print(head(rdd)) 
+
+  start_id <- m+testLength
+  end_id <- testLength + trainLength - 1
+  
+  for(n in start_id:end_id) {
+    dataMatrix[eval(m),eval(n)] <- rdd[n] 
+  }  
+  
+}
+
+test_df <- as.data.frame(dataMatrix)
+colnames(test_df)
+for (i in 1:ncol(test_df)){
+  oldColName <- paste0("V",i)
+  featureColName <- features$description[i]
+  #this worked but dyplr rename did not. very irritating
+  names(test_df)[names(test_df) == oldColName] <- featureColName
+}
+
+#########################################
+#End Test Data
+#########################################
+
+
+
+
+
+
+
 #########################################
 #########################################
 #########################################
 #########################################
-# Test Data
+# Test Extra Data
 
 test_data_dir <- "/Users/mooncalf/Dropbox/skb/coursera/UCI_HAR_Dataset/test/Inertial\ Signals/"
 
@@ -107,7 +197,7 @@ for(i in 1:length(test_data_files)) {
   
   for(j in 1:lrd) {
    
-    rdd <- trimDataTo128(rd[j])
+    rdd <- splitLine(rd[j])
     lrdd <- length(rdd)
     print(head(rdd)) 
 
@@ -166,7 +256,7 @@ for(i in 1:length(train_data_files)) {
   
   for(j in 1:lrd) {
     
-    rdd <- trimDataTo128(rd[j])
+    rdd <- splitLine(rd[j])
     lrdd <- length(rdd)
     print(head(rdd)) 
     
@@ -197,4 +287,4 @@ for(i in 1:length(train_data_files)) {
 
 
 #use this to clear the global environment when R slows down
-#rm(list = ls())
+rm(list = ls())
