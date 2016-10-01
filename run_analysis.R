@@ -65,25 +65,71 @@ str(trainX)
 trainY <- readOneColText("y_train.txt", train_dir, new_start_id)
 str(trainY)
 
-testdf <- data_frame()
+#test_data_list <- list()
 
-parseData <- function(fileName, dir){
+readDataFile <- function(fileName, dir){
   rawData <- readLines(paste0(dir, fileName, ".txt"))
-  rawData <- simplify2array(strsplit(rawData, split="  "))
-  print(str(rawData))
-  testdf[,fileName] <- as.double(rawData)
+  return(rawData)
+}
+
+trimDataTo128 <- function(data_str){
+  data_str <- gsub("  ", " ", data_str)
+  data_str <- trimws(data_str)
+  data_str <- as.double(simplify2array(strsplit(data_str, split=" ")))
+  return(data_str)
 }
 
 test_data_dir <- "/Users/mooncalf/Dropbox/skb/coursera/UCI_HAR_Dataset/test/Inertial\ Signals/"
 train_data_dir <- "/Users/mooncalf/Dropbox/skb/coursera/UCI_HAR_Dataset/train/Inertial\ Signals/"
 
-# test_data_files <- list.files(test_data_dir)
-# test_data_files <- simplify2array(strsplit(test_data_files, split=".txt"))
-test_data_files <- c("body_acc_x_test")
 
-df <- sapply(test_data_files, FUN=parseData, dir=test_data_dir)
-df <- as.data.frame(df)
-str(df)
+ # test_data_files <- list.files(test_data_dir)
+ # test_data_files <- simplify2array(strsplit(test_data_files, split=".txt"))
+
+#debug
+test_data_files <- c("body_acc_x_test", "body_acc_y_test")
+#test_data_list <- list("body_acc_x_test"=double())
+
+#I tried a lot of lapply and sapply things to make this list but in the end did a for loop because it could be controlled.
+#need to understand lapply better, but had to move on.
+test_data_list <- list("body_acc_x_test"=double(), "body_acc_y_test"=double(), "body_acc_z_test"=double(), "body_gyro_x_test"=double(), "body_gyro_y_test"=double(), "body_gyro_z_test"=double(),"total_acc_x_test"=double(), "total_acc_y_test"=double(), "total_acc_z_test"=double())
+
+for(i in 1:length(test_data_files)) {
+  #tried to make this dynamicly generated matrix, but caused issues so hard coded it
+  myMatrix <- matrix(nrow=2947, ncol=128)
+  fileName <- test_data_files[i]
+  rd <- readDataFile(fileName,test_data_dir)
+  lrd <- length(rd)
+  print(paste("the length of rd = ",lrd))
+  
+  for(j in 1:lrd) {
+   
+    rdd <- trimDataTo128(rd[j])
+    lrdd <- length(rdd)
+    print(head(rdd)) 
+
+    for(k in 1:lrdd) {
+      myMatrix[eval(j),eval(k)] <- rdd[k] 
+    }  
+      
+   }
+
+  #I tried every kind of eval to get this to work, but couldn't pull it off
+  #eval(paste0("test_data_list$",fileName,"<-",myMatrix))
+  # ran out of time so wrote this silly thing:
+  
+  if(fileName == "body_acc_x_test"){test_data_list$body_acc_x_test <- myMatrix}
+  if(fileName == "body_acc_y_test"){test_data_list$body_acc_y_test <- myMatrix}
+  if(fileName == "body_acc_z_test"){test_data_list$body_acc_z_test <- myMatrix}
+  if(fileName == "body_gyro_x_test"){test_data_list$body_gyro_x_test <- myMatrix}
+  if(fileName == "body_gyro_y_test"){test_data_list$body_gyro_y_test <- myMatrix}
+  if(fileName == "body_gyro_z_test"){test_data_list$body_gyro_z_test <- myMatrix}
+  if(fileName == "total_acc_x_test"){test_data_list$total_acc_x_test <- myMatrix}
+  if(fileName == "total_acc_y_test"){test_data_list$total_acc_y_test <- myMatrix}
+  if(fileName == "total_acc_z_test"){test_data_list$total_acc_z_test <- myMatrix}
+  test_data_list$id <-1:lrd
+
+}
 
 #use this to clear the global environment when R slows down
 #rm(list = ls())
