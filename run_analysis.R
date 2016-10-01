@@ -65,8 +65,7 @@ str(trainX)
 trainY <- readOneColText("y_train.txt", train_dir, new_start_id)
 str(trainY)
 
-#test_data_list <- list()
-
+# functions for reading and parsing data
 readDataFile <- function(fileName, dir){
   rawData <- readLines(paste0(dir, fileName, ".txt"))
   return(rawData)
@@ -79,15 +78,19 @@ trimDataTo128 <- function(data_str){
   return(data_str)
 }
 
+#########################################
+#########################################
+#########################################
+#########################################
+# Test Data
+
 test_data_dir <- "/Users/mooncalf/Dropbox/skb/coursera/UCI_HAR_Dataset/test/Inertial\ Signals/"
-train_data_dir <- "/Users/mooncalf/Dropbox/skb/coursera/UCI_HAR_Dataset/train/Inertial\ Signals/"
 
-
- # test_data_files <- list.files(test_data_dir)
- # test_data_files <- simplify2array(strsplit(test_data_files, split=".txt"))
+test_data_files <- list.files(test_data_dir)
+test_data_files <- simplify2array(strsplit(test_data_files, split=".txt"))
 
 #debug
-test_data_files <- c("body_acc_x_test", "body_acc_y_test")
+# test_data_files <- c("body_acc_x_test", "body_acc_y_test")
 #test_data_list <- list("body_acc_x_test"=double())
 
 #I tried a lot of lapply and sapply things to make this list but in the end did a for loop because it could be controlled.
@@ -130,6 +133,68 @@ for(i in 1:length(test_data_files)) {
   test_data_list$id <-1:lrd
 
 }
+
+#########################################
+#########################################
+#########################################
+#########################################
+# Training Data
+train_data_dir <- "/Users/mooncalf/Dropbox/skb/coursera/UCI_HAR_Dataset/train/Inertial\ Signals/"
+
+
+train_data_files <- list.files(train_data_dir)
+train_data_files <- simplify2array(strsplit(train_data_files, split=".txt"))
+
+#to debug use short list
+#train_data_files <- c("body_acc_x_train", "body_acc_y_train")
+#train_data_list <- list("body_acc_x_train"=double())
+
+#I tried a lot of lapply and sapply things to make this list but in the end did a for loop because it could be controlled.
+#need to understand lapply better, but had to move on.
+train_data_list <- list("body_acc_x_train"=double(), "body_acc_y_train"=double(), "body_acc_z_train"=double(), "body_gyro_x_train"=double(), "body_gyro_y_train"=double(), "body_gyro_z_train"=double(),"total_acc_x_train"=double(), "total_acc_y_train"=double(), "total_acc_z_train"=double())
+
+# know this is totally against the principles of dry coding to repeat this 
+# tried making into function, but alas, did not work.
+
+for(i in 1:length(train_data_files)) {
+  #tried to make this dynamicly generated matrix, but caused issues so hard coded it
+  myMatrix <- matrix(nrow=7352, ncol=128)
+  fileName <- train_data_files[i]
+  rd <- readDataFile(fileName,train_data_dir)
+  lrd <- length(rd)
+  print(paste("the length of rd = ",lrd))
+  
+  for(j in 1:lrd) {
+    
+    rdd <- trimDataTo128(rd[j])
+    lrdd <- length(rdd)
+    print(head(rdd)) 
+    
+    for(k in 1:lrdd) {
+      myMatrix[eval(j),eval(k)] <- rdd[k] 
+    }  
+    
+  }
+  
+  #I tried every kind of eval to get this to work, but couldn't pull it off
+  #eval(paste0("train_data_list$",fileName,"<-",myMatrix))
+  # ran out of time so wrote this silly thing:
+  
+  if(fileName == "body_acc_x_train"){train_data_list$body_acc_x_train <- myMatrix}
+  if(fileName == "body_acc_y_train"){train_data_list$body_acc_y_train <- myMatrix}
+  if(fileName == "body_acc_z_train"){train_data_list$body_acc_z_train <- myMatrix}
+  if(fileName == "body_gyro_x_train"){train_data_list$body_gyro_x_train <- myMatrix}
+  if(fileName == "body_gyro_y_train"){train_data_list$body_gyro_y_train <- myMatrix}
+  if(fileName == "body_gyro_z_train"){train_data_list$body_gyro_z_train <- myMatrix}
+  if(fileName == "total_acc_x_train"){train_data_list$total_acc_x_train <- myMatrix}
+  if(fileName == "total_acc_y_train"){train_data_list$total_acc_y_train <- myMatrix}
+  if(fileName == "total_acc_z_train"){train_data_list$total_acc_z_train <- myMatrix}
+  end_line <- 2948 + lrd - 1
+  train_data_list$id <-2948:end_line
+  
+}
+
+
 
 #use this to clear the global environment when R slows down
 #rm(list = ls())
