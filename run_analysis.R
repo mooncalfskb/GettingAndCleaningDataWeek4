@@ -3,6 +3,7 @@ library(plyr)
 
 # length of test = 2947
 # length of train = 7352
+# total = 10299
 
 
 #explanation of dataset
@@ -151,6 +152,7 @@ splitLine <- function(data_str){
 # I got close, but finally gave up because ran out of time.
 # this loop solution is probably because I am a web programmer.
 
+
 # declare a big matrix to hold all data totalLength x 561
 dataMatrix <- matrix(nrow=totalLength, ncol=featuresLength)
 fileName <- "X_test"
@@ -172,6 +174,7 @@ for(j in 1:testLength) {
 }
 
 # loop through training data, split and assign to matrix
+# ran into issues. Did not record above 9802 > total_df$`tGravityAcc-iqr()-Z`[9802]
 fileName <- "X_train"
 rd <- readDataFile(fileName,train_dir)
 #for(m in 1:lrd {
@@ -179,6 +182,7 @@ rd <- readDataFile(fileName,train_dir)
 m <- 1
 #for(j in 1:trainLength) {
 #for(m in 1:2) {
+#train length = 7352
 for(m in 1:trainLength) {
     
   rdd <- splitLine(rd[m])
@@ -192,9 +196,9 @@ for(m in 1:trainLength) {
   for(n in 1:lrdd) {
     dataMatrix[start_id,eval(n)] <- rdd[n] 
     #increment up 1
-    start_id <- start_id + 1
   }  
-  
+  #whoops this goes here
+  start_id <- start_id + 1
 }
 
 #convert matrix to dataframe
