@@ -86,7 +86,7 @@ totalLength <- testLength + trainLength
 #########################
 
 #remember strings as factors = false!
-subject_df <- data.frame(id=integer(),subject=integer(),activityID=integer(),activityName=character(), stringsAsFactors = FALSE)
+subject_df <- data.frame(id=integer(),subject=integer(),subjectType=character(),activityID=integer(),activityName=character(), stringsAsFactors = FALSE)
 
 # loop through test data and activities and assign to dataframe along with an id
 for (i in 1:testLength){
@@ -97,6 +97,8 @@ for (i in 1:testLength){
   thisActivityID <- testY$data[i]
   thisActivity <- dplyr::filter(activities,id==thisActivityID)
   subject_df[i, "activityName"] <- thisActivity$description
+  subject_df[i, "subjectType"] <- "test"
+  
 }
 
 # loop through train data and activities and assign to dataframe along with an id
@@ -113,6 +115,7 @@ for (i in 1:trainLength){
   #print(head(thisActivity))
   subject_df[start_id, "activityName"] <- thisActivity$description
   #increment up the start id
+  subject_df[i, "subjectType"] <- "train"
   start_id <- start_id + 1
 }
 
@@ -151,7 +154,7 @@ splitLine <- function(data_str){
 # Note: I made several attempts to use lapply and sapply to do this but I was getting strange results.
 # I got close, but finally gave up because ran out of time.
 # this loop solution is probably because I am a web programmer.
-
+# also realized belatedly could have done one loop by combining the read lines. for another day.
 
 # declare a big matrix to hold all data totalLength x 561
 dataMatrix <- matrix(nrow=totalLength, ncol=featuresLength)
