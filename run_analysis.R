@@ -147,13 +147,19 @@ splitLine <- function(data_str){
 #Begin Test Data
 #########################################
 
+# Note: I made several attempts to use lapply and sapply to do this but I was getting strange results.
+# I got close, but finally gave up because ran out of time.
+# this loop solution is probably because I am a web programmer.
+
+# declare a big matrix to hold all data totalLength x 561
 dataMatrix <- matrix(nrow=totalLength, ncol=featuresLength)
 fileName <- "X_test"
 rd <- readDataFile(fileName,test_dir)
 j <- 1
   
+# loop through test data, split and assign to matrix
 #for(j in 1:testLength) {
-for(j in 1:2) {
+for(j in 1:testLength) {
     
   rdd <- splitLine(rd[j])
   lrdd <- length(rdd)
@@ -165,31 +171,36 @@ for(j in 1:2) {
   
 }
 
+# loop through training data, split and assign to matrix
 fileName <- "X_train"
 rd <- readDataFile(fileName,train_dir)
 #for(m in 1:lrd {
 
 m <- 1
 #for(j in 1:trainLength) {
-for(m in 1:2) {
-  
+#for(m in 1:2) {
+for(m in 1:trainLength) {
+    
   rdd <- splitLine(rd[m])
   lrdd <- length(rdd)
   print(head(rdd)) 
 
-  #which row to start on
+  #which row to start on. start at the end of the test data
   start_id <- m+testLength
   #end_id <- testLength + trainLength - 1
   
   for(n in 1:lrdd) {
     dataMatrix[start_id,eval(n)] <- rdd[n] 
+    #increment up 1
     start_id <- start_id + 1
   }  
   
 }
 
+#convert matrix to dataframe
 data_df <- as.data.frame(dataMatrix)
 colnames(data_df)
+#rename columns like features names
 for (i in 1:ncol(data_df)){
   oldColName <- paste0("V",i)
   featureColName <- features$description[i]
@@ -197,10 +208,10 @@ for (i in 1:ncol(data_df)){
   names(data_df)[names(data_df) == oldColName] <- featureColName
 }
 
-## add an ID
+## add an ID to data_df
 data_df <- mutate(data_df, id = 1:nrow(data_df))
 
-## join data
+## join two dataframes at id
 total_df <- dplyr::arrange(plyr::join(subject_df, data_df), id)
 
 #########################################
@@ -234,7 +245,7 @@ test_data_list <- list("body_acc_x_test"=double(), "body_acc_y_test"=double(), "
 
 for(i in 1:length(test_data_files)) {
   #tried to make this dynamicly generated matrix, but caused issues so hard coded it
-  myMatrix <- matrix(nrow=2947, ncol=128)
+  myMatrix <- matrix(nrow=testLength, ncol=128)
   fileName <- test_data_files[i]
   rd <- readDataFile(fileName,test_data_dir)
   lrd <- length(rd)
@@ -289,11 +300,11 @@ train_data_files <- simplify2array(strsplit(train_data_files, split=".txt"))
 train_data_list <- list("body_acc_x_train"=double(), "body_acc_y_train"=double(), "body_acc_z_train"=double(), "body_gyro_x_train"=double(), "body_gyro_y_train"=double(), "body_gyro_z_train"=double(),"total_acc_x_train"=double(), "total_acc_y_train"=double(), "total_acc_z_train"=double())
 
 # know this is totally against the principles of dry coding to repeat this 
-# tried making into function, but alas, did not work.
+# tried making into function, but alas, did not work. ran out of time
 
 for(i in 1:length(train_data_files)) {
   #tried to make this dynamicly generated matrix, but caused issues so hard coded it
-  myMatrix <- matrix(nrow=7352, ncol=128)
+  myMatrix <- matrix(nrow=trainLength, ncol=128)
   fileName <- train_data_files[i]
   rd <- readDataFile(fileName,train_data_dir)
   lrd <- length(rd)
@@ -324,8 +335,9 @@ for(i in 1:length(train_data_files)) {
   if(fileName == "total_acc_x_train"){train_data_list$total_acc_x_train <- myMatrix}
   if(fileName == "total_acc_y_train"){train_data_list$total_acc_y_train <- myMatrix}
   if(fileName == "total_acc_z_train"){train_data_list$total_acc_z_train <- myMatrix}
-  end_line <- 2948 + lrd - 1
-  train_data_list$id <-2948:end_line
+  start_line <- testLength + 1
+  end_line <- testLength + trainLength
+  train_data_list$id <-start_line:end_line
   
 }
 
