@@ -330,6 +330,7 @@ head(avg_df)
 #write averages data set to file
 write.csv(avg_df, file = "/Users/mooncalf/Dropbox/skb/coursera/GettingAndCleaningDataWeek4/wk4_AveragesDataSet.csv",row.names=TRUE)
 
+write.table(avg_df, file = "/Users/mooncalf/Dropbox/skb/coursera/GettingAndCleaningDataWeek4/wk4_AveragesDataSet.txt", row.name=FALSE) 
 
 #########################################
 #End Test Data
