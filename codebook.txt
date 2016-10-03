@@ -1,0 +1,156 @@
+==================================================================
+Analysis and Tidying of Human Activity Recognition
+
+By Sherrod Blankner
+For Coursera Getting and Cleaning Data Week 4
+https://github.com/mooncalfskb/GettingAndCleaningDataWeek4
+
+==================================================================
+Based on the following dataset
+==================================================================
+Human Activity Recognition Using Smartphones Dataset
+Version 1.0
+==================================================================
+Jorge L. Reyes-Ortiz, Davide Anguita, Alessandro Ghio, Luca Oneto.
+Smartlab - Non Linear Complex Systems Laboratory
+DITEN - Università degli Studi di Genova.
+Via Opera Pia 11A, I-16145, Genoa, Italy.
+activityrecognition@smartlab.ws
+www.smartlab.ws
+==================================================================
+
+The file run_analysis.R in this repo performs the cleaning and 
+tidying of the data from a separate data set called UCI_HAR_Dataset,
+(see attribution above). I did not include the data in this repo 
+because it was so large, but you can download it here:
+
+https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip
+and get more information about it here:
+http://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones
+
+
+==================================================================
+
+The readme file explains how my code, run_analysis.r, works. 
+
+The run_analysis.r creates two csv datasets:
+
+==================================================================
+1. wk4_MeanStdDataSet.csv
+==================================================================
+
+This dataset contains a total of 72 columns, of which 66 are
+data measurements and 6 are identifiers. There are 10299 rows 
+of data, one row for every subject and activity in the combined
+test and training data. 
+
+The first six columns are:
+1. Index (automatically provided by the csv write)
+2. ID (identical to index)
+3. subject (an number from 1 to 30, indicating a person)
+4. subjectType (test or training subject) 
+5. activityID (an id from 1 to 6)
+6. activityName (a description of the activity, ie. WALKING).
+
+The next 66 columns are either mean() or standard deviation()
+measurements of the device features per activity measured per 
+subjects. At the end of this document is an explanation 
+of the features, taken from the original dataset. (see far below)
+
+The following are the measurements used in this abridged dataset, 
+stripped down to their mean and std. I left the column names as 
+they were in the feature set, because I thought they were well 
+named. 
+
+tBodyAcc-XYZ
+tGravityAcc-XYZ
+tBodyAccJerk-XYZ
+tBodyGyro-XYZ
+tBodyGyroJerk-XYZ
+tBodyAccMag
+tGravityAccMag
+tBodyAccJerkMag
+tBodyGyroMag
+tBodyGyroJerkMag
+fBodyAcc-XYZ
+fBodyAccJerk-XYZ
+fBodyGyro-XYZ
+fBodyAccMag
+fBodyAccJerkMag
+fBodyGyroMag
+fBodyGyroJerkMag
+
+
+==================================================================
+1. wk4_AveragesDataSet.csv
+==================================================================
+
+This dataset is a tidy dataset of the averages for every mean and
+standard deviation measurement for the features measured by the 
+devices. The averages are calculated by subject and by activity.
+
+This dataset is 38 columns wide and 66 columns deep. 
+
+The first column is an index column. 
+
+The next column "measurement" tells you the feature measured, 
+for example, tBodyAcc-mean()-X.
+
+The next 30 columns, S1-S30, tell you the average for that subject 
+for that measurement. S1 = the first subject, S2 = the second, etc.
+
+The last six columns are labeled by the six activities measured:
+WALKING
+WALKING_UPSTAIRS
+WALKING_DOWNSTAIRS
+SITTING
+STANDING
+LAYING
+
+The data shows the average for the specified activity for the 
+indicated measurement. For example, the cell representing the 
+intersection of measurement "tBodyAcc-mean()-X" and WALKING will
+tell you the average mean of the X axis of tBodyAcc for WALKING.
+(Yeah, you may need to be a physicist to understand the features.)
+
+==================================================================
+Further notes on the features, from the original data.
+==================================================================
+
+
+Feature Selection 
+=================
+
+The features selected for this database come from the accelerometer and gyroscope 3-axial raw signals tAcc-XYZ and tGyro-XYZ. These time domain signals (prefix 't' to denote time) were captured at a constant rate of 50 Hz. Then they were filtered using a median filter and a 3rd order low pass Butterworth filter with a corner frequency of 20 Hz to remove noise. Similarly, the acceleration signal was then separated into body and gravity acceleration signals (tBodyAcc-XYZ and tGravityAcc-XYZ) using another low pass Butterworth filter with a corner frequency of 0.3 Hz. 
+
+Subsequently, the body linear acceleration and angular velocity were derived in time to obtain Jerk signals (tBodyAccJerk-XYZ and tBodyGyroJerk-XYZ). Also the magnitude of these three-dimensional signals were calculated using the Euclidean norm (tBodyAccMag, tGravityAccMag, tBodyAccJerkMag, tBodyGyroMag, tBodyGyroJerkMag). 
+
+Finally a Fast Fourier Transform (FFT) was applied to some of these signals producing fBodyAcc-XYZ, fBodyAccJerk-XYZ, fBodyGyro-XYZ, fBodyAccJerkMag, fBodyGyroMag, fBodyGyroJerkMag. (Note the 'f' to indicate frequency domain signals). 
+
+These signals were used to estimate variables of the feature vector for each pattern:  
+'-XYZ' is used to denote 3-axial signals in the X, Y and Z directions.
+
+tBodyAcc-XYZ
+tGravityAcc-XYZ
+tBodyAccJerk-XYZ
+tBodyGyro-XYZ
+tBodyGyroJerk-XYZ
+tBodyAccMag
+tGravityAccMag
+tBodyAccJerkMag
+tBodyGyroMag
+tBodyGyroJerkMag
+fBodyAcc-XYZ
+fBodyAccJerk-XYZ
+fBodyGyro-XYZ
+fBodyAccMag
+fBodyAccJerkMag
+fBodyGyroMag
+fBodyGyroJerkMag
+
+The set of variables that were estimated from these signals are: 
+
+mean(): Mean value
+std(): Standard deviation
+
+The complete list of variables of each feature vector is available in 'features.txt'

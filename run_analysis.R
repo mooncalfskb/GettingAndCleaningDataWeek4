@@ -222,7 +222,7 @@ data_df <- mutate(data_df, id = 1:nrow(data_df))
 total_df <- dplyr::arrange(plyr::join(subject_df, data_df), id)
 
 #write full data set to file
-#wrote this out but it was 65 MBs so deleted it.
+#wrote this out but it was 65 MBs so deleted it from repo.
 #write.csv(total_df, file = "/Users/mooncalf/Dropbox/skb/coursera/GettingAndCleaningDataWeek4/wk4_FullDataSet.csv",row.names=TRUE)
 
 # Merges the training and the test sets to create one data set.
