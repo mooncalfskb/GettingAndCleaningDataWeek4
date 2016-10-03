@@ -115,7 +115,7 @@ for (i in 1:trainLength){
   #print(head(thisActivity))
   subject_df[start_id, "activityName"] <- thisActivity$description
   #increment up the start id
-  subject_df[i, "subjectType"] <- "train"
+  subject_df[start_id, "subjectType"] <- "train"
   start_id <- start_id + 1
 }
 
@@ -221,132 +221,118 @@ data_df <- mutate(data_df, id = 1:nrow(data_df))
 ## join two dataframes at id
 total_df <- dplyr::arrange(plyr::join(subject_df, data_df), id)
 
+#write full data set to file
+write.csv(total_df, file = "/Users/mooncalf/Dropbox/skb/coursera/GettingAndCleaningDataWeek4/wk4_FullDataSet.csv",row.names=TRUE)
+
+# Merges the training and the test sets to create one data set.
+# Extracts only the measurements on the mean and standard deviation for each measurement.
+# Uses descriptive activity names to name the activities in the data set
+# Appropriately labels the data set with descriptive variable names.
+
+# I decided that meanFreq was different than mean, so I didn't include those.
+# only included mean() and std() columns
+# have to keep id for the join
+mean_df <- select(data_df, id, contains("mean()"), contains("std()"))
+
+## join two dataframes at id
+abridged_df <- dplyr::arrange(plyr::join(subject_df, mean_df), id)
+## sort by subject, then activityName
+##sorted_df <- dplyr::arrange(abridged_df, desc(subject), desc(activityName))
+
+
+write.csv(abridged_df, file = "/Users/mooncalf/Dropbox/skb/coursera/GettingAndCleaningDataWeek4/wk4_MeanStdDataSet.csv",row.names=TRUE)
+
+# From the data set in step 4, creates a second, independent tidy data set 
+#with the average of each variable for each activity and each subject.
+
+# testing works for one
+#z <- tapply(abridged_df$`tBodyAcc-mean()-X`, abridged_df$subject,  mean)
+#workds for one
+#z <- tapply(abridged_df$`tBodyAcc-mean()-X`, abridged_df$activityName,  mean)
+
+avgSubj <- function(colName){
+  # took a while to figure out syntax of [,colName]
+  z <- tapply(abridged_df[,colName], abridged_df$subject,  mean)
+  return(z)
+}
+
+avgActivity <- function(colName){
+  # took a while to figure out syntax of [,colName]
+  z <- tapply(abridged_df[,colName], abridged_df$activityName,  mean)
+  return(z)
+}
+
+# tried all kinds of things like this but couldn't fiture it out.
+# lapply(mydata, function(x, c1, c2) {
+#   x[[c2]] <- ifelse(x[[c1]] > 20, x[[c2]], NA)
+#   return(x)
+# }, c1 = colA, c2 = colB)
+
+# from my friend google
+# df <- data.frame(A=1:10, B=2:11, C=3:12)
+# fun1 <- function(x, column){
+#   max(x[,column])
+# }
+# fun1(df, "B")
+# fun1(df, c("B","A")
+
+avg_df <- data.frame(measurement=character(),S1=double(),S2=double(),S3=double(),S4=double(),S5=double(),S6=double(),S7=double(),S8=double(),S9=double(),S10=double(),S11=double(),S12=double(),S13=double(),S14=double(),S15=double(),S16=double(),S17=double(),S18=double(),S19=double(),S20=double(),S21=double(),S22=double(),S23=double(),S24=double(),S25=double(),S26=double(),S27=double(),S28=double(),S29=double(),S30=double(),WALKING=double(),WALKING_UPSTAIRS=double(),WALKING_DOWNSTAIRS=double(),SITTING=double(),STANDING=double(),LAYING=double(),stringsAsFactors = FALSE)
+j <- 1
+
+# loop through column names and write subject averages to new dataset
+for (colName in colnames(abridged_df)){
+  
+  if (colName %in% c("id", "activityID", "activityName", "subject", "subjectType")){
+    
+  }else{
+    avg_df[j,"measurement"] <- colName
+    
+    avgs <- avgSubj(colName)
+    dim_a <- dimnames(avgs)
+    i <- 1
+    for (i in 1:length(avgs)){
+      
+      avg_df[j,eval(paste0("S",dim_a[[1]][i]))] <- avgs[[i]]
+      
+    }
+    j <- j + 1
+    
+  }
+}
+
+# loop through column names and write activity averages to new dataset
+
+j <- 1
+i <- 1
+for (colName in colnames(abridged_df)){
+  
+  if (colName %in% c("id", "activityID", "activityName", "subject", "subjectType")){
+    
+  }else{
+    #avg_df[j,"measurement"] <- colName
+    
+    avgs <- avgActivity(colName)
+    dim_a <- dimnames(avgs)
+    for (i in 1:length(avgs)){
+      
+      avg_df[j,dim_a[[1]][i]] <- avgs[[i]]
+      
+    }
+    j <- j + 1
+    
+  }
+}
+
+
+head(avg_df)
+
+#write averages data set to file
+write.csv(avg_df, file = "/Users/mooncalf/Dropbox/skb/coursera/GettingAndCleaningDataWeek4/wk4_AveragesDataSet.csv",row.names=TRUE)
+
+
 #########################################
 #End Test Data
 #########################################
-
-
-
-
-
-
-
-#########################################
-#########################################
-#########################################
-#########################################
-# Test Extra Data
-
-test_data_dir <- "/Users/mooncalf/Dropbox/skb/coursera/UCI_HAR_Dataset/test/Inertial\ Signals/"
-
-test_data_files <- list.files(test_data_dir)
-test_data_files <- simplify2array(strsplit(test_data_files, split=".txt"))
-
-#debug
-# test_data_files <- c("body_acc_x_test", "body_acc_y_test")
-#test_data_list <- list("body_acc_x_test"=double())
-
-#I tried a lot of lapply and sapply things to make this list but in the end did a for loop because it could be controlled.
-#need to understand lapply better, but had to move on.
-test_data_list <- list("body_acc_x_test"=double(), "body_acc_y_test"=double(), "body_acc_z_test"=double(), "body_gyro_x_test"=double(), "body_gyro_y_test"=double(), "body_gyro_z_test"=double(),"total_acc_x_test"=double(), "total_acc_y_test"=double(), "total_acc_z_test"=double())
-
-for(i in 1:length(test_data_files)) {
-  #tried to make this dynamicly generated matrix, but caused issues so hard coded it
-  myMatrix <- matrix(nrow=testLength, ncol=128)
-  fileName <- test_data_files[i]
-  rd <- readDataFile(fileName,test_data_dir)
-  lrd <- length(rd)
-  print(paste("the length of rd = ",lrd))
-  
-  for(j in 1:lrd) {
-   
-    rdd <- splitLine(rd[j])
-    lrdd <- length(rdd)
-    print(head(rdd)) 
-
-    for(k in 1:lrdd) {
-      myMatrix[eval(j),eval(k)] <- rdd[k] 
-    }  
-      
-   }
-
-  #I tried every kind of eval to get this to work, but couldn't pull it off
-  #eval(paste0("test_data_list$",fileName,"<-",myMatrix))
-  # ran out of time so wrote this silly thing:
-  
-  if(fileName == "body_acc_x_test"){test_data_list$body_acc_x_test <- myMatrix}
-  if(fileName == "body_acc_y_test"){test_data_list$body_acc_y_test <- myMatrix}
-  if(fileName == "body_acc_z_test"){test_data_list$body_acc_z_test <- myMatrix}
-  if(fileName == "body_gyro_x_test"){test_data_list$body_gyro_x_test <- myMatrix}
-  if(fileName == "body_gyro_y_test"){test_data_list$body_gyro_y_test <- myMatrix}
-  if(fileName == "body_gyro_z_test"){test_data_list$body_gyro_z_test <- myMatrix}
-  if(fileName == "total_acc_x_test"){test_data_list$total_acc_x_test <- myMatrix}
-  if(fileName == "total_acc_y_test"){test_data_list$total_acc_y_test <- myMatrix}
-  if(fileName == "total_acc_z_test"){test_data_list$total_acc_z_test <- myMatrix}
-  test_data_list$id <-1:lrd
-
-}
-
-#########################################
-#########################################
-#########################################
-#########################################
-# Training Data
-train_data_dir <- "/Users/mooncalf/Dropbox/skb/coursera/UCI_HAR_Dataset/train/Inertial\ Signals/"
-
-
-train_data_files <- list.files(train_data_dir)
-train_data_files <- simplify2array(strsplit(train_data_files, split=".txt"))
-
-#to debug use short list
-#train_data_files <- c("body_acc_x_train", "body_acc_y_train")
-#train_data_list <- list("body_acc_x_train"=double())
-
-#I tried a lot of lapply and sapply things to make this list but in the end did a for loop because it could be controlled.
-#need to understand lapply better, but had to move on.
-train_data_list <- list("body_acc_x_train"=double(), "body_acc_y_train"=double(), "body_acc_z_train"=double(), "body_gyro_x_train"=double(), "body_gyro_y_train"=double(), "body_gyro_z_train"=double(),"total_acc_x_train"=double(), "total_acc_y_train"=double(), "total_acc_z_train"=double())
-
-# know this is totally against the principles of dry coding to repeat this 
-# tried making into function, but alas, did not work. ran out of time
-
-for(i in 1:length(train_data_files)) {
-  #tried to make this dynamicly generated matrix, but caused issues so hard coded it
-  myMatrix <- matrix(nrow=trainLength, ncol=128)
-  fileName <- train_data_files[i]
-  rd <- readDataFile(fileName,train_data_dir)
-  lrd <- length(rd)
-  print(paste("the length of rd = ",lrd))
-  
-  for(j in 1:lrd) {
-    
-    rdd <- splitLine(rd[j])
-    lrdd <- length(rdd)
-    print(head(rdd)) 
-    
-    for(k in 1:lrdd) {
-      myMatrix[eval(j),eval(k)] <- rdd[k] 
-    }  
-    
-  }
-  
-  #I tried every kind of eval to get this to work, but couldn't pull it off
-  #eval(paste0("train_data_list$",fileName,"<-",myMatrix))
-  # ran out of time so wrote this silly thing:
-  
-  if(fileName == "body_acc_x_train"){train_data_list$body_acc_x_train <- myMatrix}
-  if(fileName == "body_acc_y_train"){train_data_list$body_acc_y_train <- myMatrix}
-  if(fileName == "body_acc_z_train"){train_data_list$body_acc_z_train <- myMatrix}
-  if(fileName == "body_gyro_x_train"){train_data_list$body_gyro_x_train <- myMatrix}
-  if(fileName == "body_gyro_y_train"){train_data_list$body_gyro_y_train <- myMatrix}
-  if(fileName == "body_gyro_z_train"){train_data_list$body_gyro_z_train <- myMatrix}
-  if(fileName == "total_acc_x_train"){train_data_list$total_acc_x_train <- myMatrix}
-  if(fileName == "total_acc_y_train"){train_data_list$total_acc_y_train <- myMatrix}
-  if(fileName == "total_acc_z_train"){train_data_list$total_acc_z_train <- myMatrix}
-  start_line <- testLength + 1
-  end_line <- testLength + trainLength
-  train_data_list$id <-start_line:end_line
-  
-}
 
 
 
